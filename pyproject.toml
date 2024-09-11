@@ -1,0 +1,46 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "cadquery-png-plugin"
+version = "1.0.0"
+dependencies = [
+  "cadquery@git+https://github.com/CadQuery/cadquery.git",
+  "cadquery-ocp>=7.7.0a0,<7.8",
+  "numpy<2",
+  "ezdxf",
+  "multimethod>=1.11,<2.0",
+  "nlopt",
+  "typish",
+  "casadi",
+  "path"
+]
+requires-python = ">=3.9"
+authors = [
+  { name="Jeremy Wright" }
+]
+maintainers = [
+  { name="Jeremy Wright" }
+]
+description = "A PNG export plugin for CadQuery."
+readme = "README.md"
+license = {file = "LICENSE"}
+keywords = ["cadquery", "CAD", "engineering", "design"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python"
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+  "black",
+]
+
+[project.urls]
+Repository = "https://github.com/jmwright/cadquery-png-plugin.git"
+"Bug Tracker" = "https://github.com/jmwright/cadquery-png-plugin/issues"
+
+[tool.hatch.metadata]
+allow-direct-references = true
