@@ -93,7 +93,7 @@ def setup_render_window(face_actors, edge_actors, width, height, background_colo
     # Setup offscreen rendering
     graphics_factory = vtkGraphicsFactory()
     graphics_factory.SetOffScreenOnlyMode(1)
-    graphics_factory.SetUseMesaClasses(1)
+    # graphics_factory.SetUseMesaClasses(1)
 
     # A renderer and render window
     renderer = vtkRenderer()
