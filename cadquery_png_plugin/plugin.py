@@ -1,4 +1,7 @@
 from math import degrees
+
+from vtkmodules.vtkFiltersExtraction import vtkExtractCellsByType
+from vtkmodules.vtkCommonDataModel import VTK_TRIANGLE, VTK_LINE, VTK_VERTEX
 from vtkmodules.vtkRenderingCore import (
     vtkRenderer,
     vtkRenderWindow,
@@ -7,22 +10,20 @@ from vtkmodules.vtkRenderingCore import (
     vtkActor,
     vtkPolyDataMapper as vtkMapper,
 )
-from vtkmodules.vtkFiltersExtraction import vtkExtractCellsByType
-from vtkmodules.vtkCommonDataModel import VTK_TRIANGLE, VTK_LINE, VTK_VERTEX
 from vtkmodules.vtkIOImage import vtkPNGWriter
+
+import numpy as np
 import cadquery as cq
 
-def export_assembly_png(self, assy, options, filename):
-    print("Exporting PNG")
 
-    """
-    Exports an assembly to a VTK object, which can then be rendered to a PNG image
-    while preserving colors, rotation, etc.
-    :param assy: Assembly to be exported to PNG
-    :param path: Path and filename for writing the PNG data to
-    :param options: Options that influence the way the PNG is rendered
-    """
+def look_at(points, fov, rotation=None, distance=None, center=None, pad=None):
+    pass
 
+
+def convert_assembly_to_vtk(assy):
+    """
+    Converts a CadQuery assembly to VTK face and edge actors so that they can be rendered.
+    """
     face_actors = []
     edge_actors = []
 
@@ -81,53 +82,13 @@ def export_assembly_png(self, assy, options, filename):
             face_actors.append(face_actor)
             edge_actors.append(edge_actor)
 
-    # We need a compound assembly object so we can get the size for the camera position
-    assy_compound = assy.toCompound()
+    return face_actors, edge_actors
 
-    # Try to determine sane defaults for the camera position
-    camera_x = 20
-    camera_y = 20
-    camera_z = 20
-    if not options or "camera_position" not in options:
-        camera_x = (
-            assy_compound.BoundingBox().xmax - assy_compound.BoundingBox().xmin
-        ) * 2.0
-        camera_y = (
-            assy_compound.BoundingBox().ymax - assy_compound.BoundingBox().ymin
-        ) * 2.0
-        camera_z = (
-            assy_compound.BoundingBox().zmax - assy_compound.BoundingBox().zmin
-        ) * 2.0
 
-    # Handle view options that were passed in
-    if options:
-        width = options["width"] if "width" in options else 800
-        height = options["height"] if "height" in options else 600
-        camera_position = (
-            options["camera_position"]
-            if "camera_position" in options
-            else (camera_x, camera_y, camera_z)
-        )
-        view_up_direction = (
-            options["view_up_direction"] if "view_up_direction" in options else (0, 0, 1)
-        )
-        focal_point = options["focal_point"] if "focal_point" in options else (0, 0, 0)
-        parallel_projection = (
-            options["parallel_projection"] if "parallel_projection" in options else True
-        )
-        background_color = (
-            options["background_color"] if "background_color" in options else (0.5, 0.5, 0.5)
-        )
-        clipping_range = options["clipping_range"] if "clipping_range" in options else None
-    else:
-        width = 800
-        height = 600
-        camera_position = (camera_x, camera_y, camera_z)
-        view_up_direction = (0, 0, 1)
-        focal_point = (0, 0, 0)
-        parallel_projection = False
-        background_color = (0.8, 0.8, 0.8)
-        clipping_range = None
+def setup_render_window(face_actors, edge_actors, width, height, background_color):
+    """
+    Sets up a VTK render window with the given actors, dimensions and background color.
+    """
 
     # Setup offscreen rendering
     graphics_factory = vtkGraphicsFactory()
@@ -136,11 +97,11 @@ def export_assembly_png(self, assy, options, filename):
 
     # A renderer and render window
     renderer = vtkRenderer()
-    renderWindow = vtkRenderWindow()
-    renderWindow.SetSize(width, height)
-    renderWindow.SetOffScreenRendering(1)
+    render_window = vtkRenderWindow()
+    render_window.SetSize(width, height)
+    render_window.SetOffScreenRendering(1)
 
-    renderWindow.AddRenderer(renderer)
+    render_window.AddRenderer(renderer)
 
     # Add all the actors to the scene
     for face_actor in face_actors:
@@ -153,31 +114,162 @@ def export_assembly_png(self, assy, options, filename):
     )
 
     # Render the scene
-    renderWindow.Render()
+    render_window.Render()
 
-    # Set the camera as the user requested
+    return render_window
+
+
+def setup_camera(renderer, view, zoom=1.0):
+    """
+    Sets up a VTK camera with the given center, distance and rotation.
+    """
+
+    # Apply different options for different views
+    if view == "top":
+        view_up = (0, 1, 0)
+        azimuth = 0
+        elevation = 0
+        roll = 0
+    elif view == "bottom":
+        view_up = (0, 1, 0)
+        azimuth = 180
+        elevation = 0
+        roll = 0
+    elif view == "back":
+        view_up = (0, 1, 0)
+        azimuth = 0
+        elevation = 90
+        roll = 180
+    elif view == "front":
+        view_up = (0, 1, 0)
+        azimuth = 0
+        elevation = -90
+        roll = 0
+    elif view == "left":
+        view_up = (0, 1, 0)
+        azimuth = 90
+        elevation = 180
+        roll = 90
+    elif view == "right":
+        view_up = (0, 1, 0)
+        azimuth = 90
+        elevation = 0
+        roll = -90
+    elif view == "front-top-right":
+        view_up = (0, 1, 0)
+        azimuth = 45
+        elevation = -45
+        roll = -55
+    elif view == "front-top-left":
+        view_up = (0, 1, 0)
+        azimuth = -45
+        elevation = -45
+        roll = 55
+    elif view == "front-bottom-right":
+        view_up = (0, 1, 0)
+        azimuth = -45
+        elevation = -135
+        roll = -125
+    elif view == "front-bottom-left":
+        view_up = (0, 1, 0)
+        azimuth = 45
+        elevation = -135
+        roll = 125
+    elif view == "back-top-right":
+        view_up = (0, 1, 0)
+        azimuth = 135
+        elevation = 135
+        roll = 125
+    elif view == "back-top-left":
+        view_up = (0, 1, 0)
+        azimuth = -135
+        elevation = 135
+        roll = -125
+    elif view == "back-bottom-left":
+        view_up = (0, 1, 0)
+        azimuth = 135
+        elevation = 45
+        roll = -55
+    elif view == "back-bottom-right":
+        view_up = (0, 1, 0)
+        azimuth = -135
+        elevation = 45
+        roll = 55
+
+    # Set the camera up for the requested view
     camera = renderer.GetActiveCamera()
-    camera.SetPosition(camera_position[0], camera_position[1], camera_position[2])
-    camera.SetViewUp(view_up_direction[0], view_up_direction[1], view_up_direction[2])
-    camera.SetFocalPoint(focal_point[0], focal_point[1], focal_point[2])
-    if parallel_projection:
-        camera.ParallelProjectionOn()
-    else:
-        camera.ParallelProjectionOff()
+    camera.ParallelProjectionOn()
+    camera.SetViewUp(*view_up)
+    camera.Zoom(zoom)
+    camera.Azimuth(azimuth)
+    camera.Elevation(elevation)
+    camera.Roll(roll)
 
     # Set the clipping range
-    if clipping_range:
-        camera.SetClippingRange(clipping_range[0], clipping_range[1])
+    camera.SetClippingRange(-1000.0, 1000.0)
 
+
+def save_render_window_to_png(render_window, filename):
+    """
+    Saves the scene in a render window to a PNG file on disk.
+    """
     # Export a PNG of the scene
     windowToImageFilter = vtkWindowToImageFilter()
-    windowToImageFilter.SetInput(renderWindow)
+    windowToImageFilter.SetInput(render_window)
     windowToImageFilter.Update()
 
     writer = vtkPNGWriter()
     writer.SetFileName(filename)
     writer.SetInputConnection(windowToImageFilter.GetOutputPort())
     writer.Write()
+
+    return None
+
+
+def export_assembly_png(self, options, file_path):
+    """
+    Renders a CadQuery assembly to a PNG file.
+    """
+
+    # Create some defaults for renders if there are no options
+    if options is None:
+        options = {}
+        options["width"] = 800
+        options["height"] = 600
+        options["background_color"] = (0.8, 0.8, 0.8)
+        options["view"] = "front-top-right"
+        options["zoom"] = 1.0
+    if "width" not in options:
+        options["width"] = 800
+    if "height" not in options:
+        options["height"] = 600
+    if "background_color" not in options:
+        options["background_color"] = (0.8, 0.8, 0.8)
+    if "view" not in options:
+        options["view"] = "front-top-right"
+    if "zoom" not in options:
+        options["zoom"] = 1.0
+
+    # Convert the assembly to VTK actors that can be rendered
+    face_actors, edge_actors = convert_assembly_to_vtk(self)
+
+    # Set up the render window
+    width = options["width"]
+    height = options["height"]
+    background_color = options["background_color"]
+    render_window = setup_render_window(
+        face_actors, edge_actors, width, height, background_color
+    )
+
+    # View that was requested of the assembly
+    view = options["view"]
+
+    # Center and fit the assembly using the camera
+    setup_camera(render_window.GetRenderers().GetFirstRenderer(), view, options["zoom"])
+
+    # Save the render window to a PNG file
+    save_render_window_to_png(render_window, file_path)
+
 
 # Path the function into the Assembly class
 cq.Assembly.exportPNG = export_assembly_png
