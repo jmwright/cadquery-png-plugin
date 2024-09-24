@@ -20,7 +20,7 @@ def look_at(points, fov, rotation=None, distance=None, center=None, pad=None):
     pass
 
 
-def convert_assembly_to_vtk(assy):
+def convert_assembly_to_vtk(assy, edge_color, edge_width):
     """
     Converts a CadQuery assembly to VTK face and edge actors so that they can be rendered.
     """
@@ -71,12 +71,25 @@ def convert_assembly_to_vtk(assy):
             face_actor.GetProperty().SetColor(*color[:3])
             face_actor.GetProperty().SetOpacity(color[3])
 
-            # Update the edges
+            # Allow the caller to control the edge width
+            edge_width = 2
+            if "edge_width" in subassy[1].metadata:
+                edge_width = subassy[1].metadata["edge_width"]
+
+            # Choose a default of black if no edge color was chosen
+            cur_edge_color = (0.0, 0.0, 0.0)
+            edge_opacity = 1.0
+            if "edge_color" in subassy[1].metadata:
+                cur_edge_color = subassy[1].metadata["edge_color"].toTuple()[:3]
+                edge_opacity = subassy[1].metadata["edge_color"].toTuple()[3]
+                print(edge_opacity)
+
             edge_mapper.SetInputDataObject(data_edges)
             edge_actor.SetPosition(*translation)
             edge_actor.SetOrientation(*map(degrees, rotation))
-            edge_actor.GetProperty().SetColor(1.0, 1.0, 1.0)
-            edge_actor.GetProperty().SetLineWidth(1)
+            edge_actor.GetProperty().SetColor(cur_edge_color[0], cur_edge_color[1], cur_edge_color[2])
+            edge_actor.GetProperty().SetOpacity(edge_opacity)
+            edge_actor.GetProperty().SetLineWidth(edge_width)
 
             # Handle all actors
             face_actors.append(face_actor)
@@ -249,9 +262,13 @@ def export_assembly_png(self, options, file_path):
         options["view"] = "front-top-right"
     if "zoom" not in options:
         options["zoom"] = 1.0
+    if "edge_color" not in options:
+        options["edge_color"] = (0.0, 0.0, 0.0)
+    if "edge_width" not in options:
+        options["edge_width"] = 1
 
     # Convert the assembly to VTK actors that can be rendered
-    face_actors, edge_actors = convert_assembly_to_vtk(self)
+    face_actors, edge_actors = convert_assembly_to_vtk(self, options["edge_color"], options["edge_width"])
 
     # Set up the render window
     width = options["width"]
