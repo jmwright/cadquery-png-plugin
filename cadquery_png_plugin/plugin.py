@@ -143,71 +143,99 @@ def setup_camera(renderer, view, zoom=1.0):
         azimuth = 0
         elevation = 0
         roll = 0
+        window_center_x = 0.0
+        window_center_y = 0.0
     elif view == "bottom":
         view_up = (0, 1, 0)
         azimuth = 180
         elevation = 0
         roll = 0
+        window_center_x = 0.0
+        window_center_y = 0.0
     elif view == "back":
         view_up = (0, 1, 0)
         azimuth = 0
         elevation = 90
         roll = 180
+        window_center_x = 0.0
+        window_center_y = 0.0
     elif view == "front":
         view_up = (0, 1, 0)
         azimuth = 0
         elevation = -90
         roll = 0
+        window_center_x = 0.0
+        window_center_y = 0.0
     elif view == "left":
         view_up = (0, 1, 0)
         azimuth = 90
         elevation = 180
         roll = 90
+        window_center_x = 0.0
+        window_center_y = 0.0
     elif view == "right":
         view_up = (0, 1, 0)
         azimuth = 90
         elevation = 0
         roll = -90
+        window_center_x = 0.0
+        window_center_y = 0.0
     elif view == "front-top-right":
         view_up = (0, 1, 0)
         azimuth = 45
         elevation = -45
         roll = -55
+        window_center_x = -0.1
+        window_center_y = -0.2
     elif view == "front-top-left":
         view_up = (0, 1, 0)
         azimuth = -45
         elevation = -45
         roll = 55
+        window_center_x = 0.1
+        window_center_y = -0.2
     elif view == "front-bottom-right":
         view_up = (0, 1, 0)
         azimuth = -45
         elevation = -135
         roll = -125
+        window_center_x = -0.1
+        window_center_y = -0.1
     elif view == "front-bottom-left":
         view_up = (0, 1, 0)
         azimuth = 45
         elevation = -135
         roll = 125
+        window_center_x = 0.1
+        window_center_y = -0.1
     elif view == "back-top-right":
         view_up = (0, 1, 0)
         azimuth = 135
         elevation = 135
         roll = 125
+        window_center_x = 0.1
+        window_center_y = -0.1
     elif view == "back-top-left":
         view_up = (0, 1, 0)
         azimuth = -135
         elevation = 135
         roll = -125
+        window_center_x = -0.1
+        window_center_y = -0.1
     elif view == "back-bottom-left":
         view_up = (0, 1, 0)
         azimuth = 135
         elevation = 45
         roll = -55
+        window_center_x = -0.1
+        window_center_y = -0.2
     elif view == "back-bottom-right":
         view_up = (0, 1, 0)
         azimuth = -135
         elevation = 45
         roll = 55
+        window_center_x = 0.1
+        window_center_y = -0.2
 
     # Set the camera up for the requested view
     camera = renderer.GetActiveCamera()
@@ -217,6 +245,7 @@ def setup_camera(renderer, view, zoom=1.0):
     camera.Azimuth(azimuth)
     camera.Elevation(elevation)
     camera.Roll(roll)
+    camera.SetWindowCenter(window_center_x, window_center_y)
 
     # Set the clipping range
     camera.SetClippingRange(-1000.0, 1000.0)
