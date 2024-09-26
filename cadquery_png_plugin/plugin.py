@@ -16,11 +16,7 @@ import numpy as np
 import cadquery as cq
 
 
-def look_at(points, fov, rotation=None, distance=None, center=None, pad=None):
-    pass
-
-
-def convert_assembly_to_vtk(assy, edge_color, edge_width):
+def convert_assembly_to_vtk(assy, edge_width, color_theme):
     """
     Converts a CadQuery assembly to VTK face and edge actors so that they can be rendered.
     """
@@ -32,6 +28,12 @@ def convert_assembly_to_vtk(assy, edge_color, edge_width):
         for shape, name, loc, col in subassy[1]:
             color = col.toTuple() if col else (0.1, 0.1, 0.1, 1.0)
             translation, rotation = loc.toTuple()
+
+            # Override the face color if another theme has been requested
+            if color_theme == "black_and_white" and not "assembly_line" in name:
+                color = (2.0, 2.0, 2.0, 1.0)
+            elif color_theme == "black_and_white" and "assembly_line" in name:
+                color = (0.0, 0.0, 0.0, 1.0)
 
             # Tesselate the CQ object into VTK data
             vtk_data = shape.toVtkPolyData(1e-3, 0.1)
@@ -82,7 +84,6 @@ def convert_assembly_to_vtk(assy, edge_color, edge_width):
             if "edge_color" in subassy[1].metadata:
                 cur_edge_color = subassy[1].metadata["edge_color"].toTuple()[:3]
                 edge_opacity = subassy[1].metadata["edge_color"].toTuple()[3]
-                print(edge_opacity)
 
             edge_mapper.SetInputDataObject(data_edges)
             edge_actor.SetPosition(*translation)
@@ -295,14 +296,24 @@ def export_assembly_png(self, options, file_path):
         options["edge_color"] = (0.0, 0.0, 0.0)
     if "edge_width" not in options:
         options["edge_width"] = 1
+    if "color_theme" not in options:
+        options["color_theme"] = "default"
 
     # Convert the assembly to VTK actors that can be rendered
-    face_actors, edge_actors = convert_assembly_to_vtk(self, options["edge_color"], options["edge_width"])
+    face_actors, edge_actors = convert_assembly_to_vtk(self,
+                                                       options["edge_width"],
+                                                       options["color_theme"])
 
-    # Set up the render window
+    # Variables for the render window
     width = options["width"]
     height = options["height"]
     background_color = options["background_color"]
+
+    # Override colors for a given theme
+    if "color_theme" in options:
+        if options["color_theme"] == "black_and_white":
+            background_color = (1.0, 1.0, 1.0)
+
     render_window = setup_render_window(
         face_actors, edge_actors, width, height, background_color
     )
@@ -311,7 +322,9 @@ def export_assembly_png(self, options, file_path):
     view = options["view"]
 
     # Center and fit the assembly using the camera
-    setup_camera(render_window.GetRenderers().GetFirstRenderer(), view, options["zoom"])
+    setup_camera(render_window.GetRenderers().GetFirstRenderer(),
+                 view,
+                 options["zoom"])
 
     # Save the render window to a PNG file
     save_render_window_to_png(render_window, file_path)
