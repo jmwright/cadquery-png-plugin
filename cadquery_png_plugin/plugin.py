@@ -186,8 +186,8 @@ def setup_camera(renderer, view, zoom=1.0):
         azimuth = 45
         elevation = -45
         roll = -55
-        window_center_x = -0.1
-        window_center_y = -0.2
+        window_center_x = -0.05
+        window_center_y = -0.05
     elif view == "front-top-left":
         view_up = (0, 1, 0)
         azimuth = -45
@@ -200,8 +200,8 @@ def setup_camera(renderer, view, zoom=1.0):
         azimuth = -45
         elevation = -135
         roll = -125
-        window_center_x = -0.1
-        window_center_y = -0.1
+        window_center_x = -0.05
+        window_center_y = 0.05
     elif view == "front-bottom-left":
         view_up = (0, 1, 0)
         azimuth = 45
@@ -236,7 +236,7 @@ def setup_camera(renderer, view, zoom=1.0):
         elevation = 45
         roll = 55
         window_center_x = 0.1
-        window_center_y = -0.2
+        window_center_y = 0.1
 
     # Set the camera up for the requested view
     camera = renderer.GetActiveCamera()
