@@ -1,5 +1,3 @@
-from math import degrees
-
 from vtkmodules.vtkFiltersExtraction import vtkExtractCellsByType
 from vtkmodules.vtkCommonDataModel import VTK_TRIANGLE, VTK_LINE, VTK_VERTEX
 from vtkmodules.vtkRenderingCore import (
@@ -69,7 +67,7 @@ def convert_assembly_to_vtk(assy, edge_width, color_theme):
             # Update the faces
             face_mapper.SetInputDataObject(data_faces)
             face_actor.SetPosition(*translation)
-            face_actor.SetOrientation(*map(degrees, rotation))
+            face_actor.SetOrientation(*rotation)
             face_actor.GetProperty().SetColor(*color[:3])
             face_actor.GetProperty().SetOpacity(color[3])
 
@@ -87,7 +85,7 @@ def convert_assembly_to_vtk(assy, edge_width, color_theme):
 
             edge_mapper.SetInputDataObject(data_edges)
             edge_actor.SetPosition(*translation)
-            edge_actor.SetOrientation(*map(degrees, rotation))
+            edge_actor.SetOrientation(*rotation)
             edge_actor.GetProperty().SetColor(cur_edge_color[0], cur_edge_color[1], cur_edge_color[2])
             edge_actor.GetProperty().SetOpacity(edge_opacity)
             edge_actor.GetProperty().SetLineWidth(edge_width)
