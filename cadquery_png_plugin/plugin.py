@@ -72,7 +72,7 @@ def convert_assembly_to_vtk(assy, edge_width, color_theme):
             face_actor.GetProperty().SetOpacity(color[3])
 
             # Allow the caller to control the edge width
-            edge_width = 2
+            edge_width = 1
             if "edge_width" in subassy[1].metadata:
                 edge_width = subassy[1].metadata["edge_width"]
 
@@ -247,7 +247,7 @@ def setup_camera(renderer, view, zoom=1.0):
     camera.SetWindowCenter(window_center_x, window_center_y)
 
     # Set the clipping range
-    camera.SetClippingRange(-1000.0, 1000.0)
+    camera.SetClippingRange(-10000.0, 10000.0)
 
 
 def save_render_window_to_png(render_window, filename):
