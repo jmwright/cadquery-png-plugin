@@ -23,7 +23,7 @@ import cadquery_png_plugin.plugin  # This registers the plugin with CadQuery
 # You can customize the render options through a dictionary
 render_options = {"width": 600,  # width of the output image
                   "height": 600,  # height of the output image
-                  "color_theme": "default",  # can also be black-and-white
+                  "color_theme": "default",  # can also be black_and_white
                   "view": "front-top-right",  # front, top, front-bottom-left, etc
                   "zoom": 1.0  # zooms in and out on the center of the model
                   }
