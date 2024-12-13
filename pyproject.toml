@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "cadquery_png_plugin"
 version = "1.0.0"
 dependencies = [
-  "cadquery@git+https://github.com/CadQuery/cadquery.git"
+  "cadquery"
 ]
 requires-python = ">=3.9"
 authors = [
