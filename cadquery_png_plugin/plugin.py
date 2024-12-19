@@ -27,6 +27,9 @@ def convert_assembly_to_vtk(assy, edge_width, color_theme):
             color = col.toTuple() if col else (0.1, 0.1, 0.1, 1.0)
             translation, rotation = loc.toTuple()
 
+            # CadQuery uses radians, VTK uses degrees
+            rotation = np.degrees(rotation)
+
             # Override the face color if another theme has been requested
             if color_theme == "black_and_white" and not "assembly_line" in name:
                 color = (2.0, 2.0, 2.0, 1.0)
