@@ -23,6 +23,10 @@ def convert_assembly_to_vtk(assy, edge_width, color_theme):
 
     # Walk the assembly tree to make sure all objects are exported
     for subassy in assy.traverse():
+        # Because of how subassemlies and traverse work together, filter out duplicates
+        if len(subassy[1].children) < 2:
+            continue
+
         for shape, name, loc, col in subassy[1]:
             color = col.toTuple() if col else (0.1, 0.1, 0.1, 1.0)
             translation, rotation = loc.toTuple()
