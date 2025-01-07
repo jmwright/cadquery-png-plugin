@@ -93,7 +93,9 @@ def convert_assembly_to_vtk(assy, edge_width, color_theme):
             edge_mapper.SetInputDataObject(data_edges)
             edge_actor.SetPosition(*translation)
             edge_actor.SetOrientation(*rotation)
-            edge_actor.GetProperty().SetColor(cur_edge_color[0], cur_edge_color[1], cur_edge_color[2])
+            edge_actor.GetProperty().SetColor(
+                cur_edge_color[0], cur_edge_color[1], cur_edge_color[2]
+            )
             edge_actor.GetProperty().SetOpacity(edge_opacity)
             edge_actor.GetProperty().SetLineWidth(edge_width)
 
@@ -305,9 +307,9 @@ def export_assembly_png(self, options, file_path):
         options["color_theme"] = "default"
 
     # Convert the assembly to VTK actors that can be rendered
-    face_actors, edge_actors = convert_assembly_to_vtk(self,
-                                                       options["edge_width"],
-                                                       options["color_theme"])
+    face_actors, edge_actors = convert_assembly_to_vtk(
+        self, options["edge_width"], options["color_theme"]
+    )
 
     # Variables for the render window
     width = options["width"]
@@ -327,9 +329,7 @@ def export_assembly_png(self, options, file_path):
     view = options["view"]
 
     # Center and fit the assembly using the camera
-    setup_camera(render_window.GetRenderers().GetFirstRenderer(),
-                 view,
-                 options["zoom"])
+    setup_camera(render_window.GetRenderers().GetFirstRenderer(), view, options["zoom"])
 
     # Save the render window to a PNG file
     save_render_window_to_png(render_window, file_path)
