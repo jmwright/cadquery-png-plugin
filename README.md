@@ -31,8 +31,8 @@ render_options = {"width": 600,  # width of the output image
 # Create a simple CadQuery assembly for an example export
 box = cq.Workplane().box(10, 10, 10)
 cyl = cq.Workplane().circle(2.5).extrude(5)
-assy = cq.Assembly()
-assy.add(box, color=cq.Color(1.0, 0.0, 0.0))
+assy = cq.Assembly(box, color=cq.Color(1.0, 0.0, 0.0))
+# assy.add(box, color=cq.Color(1.0, 0.0, 0.0))
 assy.add(cyl, loc=cq.Location(0, 0, 5.0), color=cq.Color(0.0, 0.0, 1.0))
 
 # Do the PNG export
