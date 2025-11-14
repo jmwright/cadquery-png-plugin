@@ -14,91 +14,87 @@ import numpy as np
 import cadquery as cq
 
 
-def convert_assembly_to_vtk(assy, edge_width, color_theme):
+def convert_assembly_to_vtk(assy, edge_width, color_theme, edge_color):
     """
     Converts a CadQuery assembly to VTK face and edge actors so that they can be rendered.
     """
     face_actors = []
     edge_actors = []
 
-    # Walk the assembly tree to make sure all objects are exported
-    for subassy in assy.traverse():
-        # Step through every child in the subassembly
-        for shape, name, loc, col in subassy[1]:
-            color = col.toTuple() if col else (0.1, 0.1, 0.1, 1.0)
-            translation, rotation = loc.toTuple()
+    # Step through every child in the subassembly
+    for shape, name, loc, col in assy:
+        color = col.toTuple() if col else (0.1, 0.1, 0.1, 1.0)
+        translation, rotation = cq.occ_impl.assembly._loc2vtk(loc)
 
-            # CadQuery uses radians, VTK uses degrees
-            rotation = np.degrees(rotation)
+        # Override the face color if another theme has been requested
+        if color_theme == "black_and_white" and not "assembly_line" in name:
+            color = (2.0, 2.0, 2.0, 1.0)
+        elif color_theme == "black_and_white" and "assembly_line" in name:
+            color = (0.0, 0.0, 0.0, 1.0)
 
-            # Override the face color if another theme has been requested
-            if color_theme == "black_and_white" and not "assembly_line" in name:
-                color = (2.0, 2.0, 2.0, 1.0)
-            elif color_theme == "black_and_white" and "assembly_line" in name:
-                color = (0.0, 0.0, 0.0, 1.0)
+        # Tesselate the CQ object into VTK data
+        vtk_data = shape.toVtkPolyData(1e-3, 0.1)
 
-            # Tesselate the CQ object into VTK data
-            vtk_data = shape.toVtkPolyData(1e-3, 0.1)
+        # Extract faces
+        extr = vtkExtractCellsByType()
+        extr.SetInputDataObject(vtk_data)
 
-            # Extract faces
-            extr = vtkExtractCellsByType()
-            extr.SetInputDataObject(vtk_data)
+        extr.AddCellType(VTK_LINE)
+        extr.AddCellType(VTK_VERTEX)
+        extr.Update()
+        data_edges = extr.GetOutput()
 
-            extr.AddCellType(VTK_LINE)
-            extr.AddCellType(VTK_VERTEX)
-            extr.Update()
-            data_edges = extr.GetOutput()
+        # Extract edges
+        extr = vtkExtractCellsByType()
+        extr.SetInputDataObject(vtk_data)
 
-            # Extract edges
-            extr = vtkExtractCellsByType()
-            extr.SetInputDataObject(vtk_data)
+        extr.AddCellType(VTK_TRIANGLE)
+        extr.Update()
+        data_faces = extr.GetOutput()
 
-            extr.AddCellType(VTK_TRIANGLE)
-            extr.Update()
-            data_faces = extr.GetOutput()
+        # Remove normals from edges
+        data_edges.GetPointData().RemoveArray("Normals")
 
-            # Remove normals from edges
-            data_edges.GetPointData().RemoveArray("Normals")
+        # Set up the face and edge mappers and actors
+        face_mapper = vtkMapper()
+        face_actor = vtkActor()
+        face_actor.SetMapper(face_mapper)
+        edge_mapper = vtkMapper()
+        edge_actor = vtkActor()
+        edge_actor.SetMapper(edge_mapper)
 
-            # Set up the face and edge mappers and actors
-            face_mapper = vtkMapper()
-            face_actor = vtkActor()
-            face_actor.SetMapper(face_mapper)
-            edge_mapper = vtkMapper()
-            edge_actor = vtkActor()
-            edge_actor.SetMapper(edge_mapper)
+        # Update the faces
+        face_mapper.SetInputDataObject(data_faces)
+        face_actor.SetPosition(*translation)
+        face_actor.SetOrientation(*rotation)
+        face_actor.GetProperty().SetColor(*color[:3])
+        face_actor.GetProperty().SetOpacity(color[3])
 
-            # Update the faces
-            face_mapper.SetInputDataObject(data_faces)
-            face_actor.SetPosition(*translation)
-            face_actor.SetOrientation(*rotation)
-            face_actor.GetProperty().SetColor(*color[:3])
-            face_actor.GetProperty().SetOpacity(color[3])
+        # Allow the caller to control the edge width
+        cur_edge_width = 1
+        if edge_width:
+            cur_edge_width = edge_width
 
-            # Allow the caller to control the edge width
-            edge_width = 1
-            if "edge_width" in subassy[1].metadata:
-                edge_width = subassy[1].metadata["edge_width"]
+        # Allow a default edge color
+        if not edge_color:
+            edge_color = (1.0, 1.0, 1.0, 1.0)
 
-            # Choose a default of black if no edge color was chosen
-            cur_edge_color = (0.0, 0.0, 0.0)
-            edge_opacity = 1.0
-            if "edge_color" in subassy[1].metadata:
-                cur_edge_color = subassy[1].metadata["edge_color"].toTuple()[:3]
-                edge_opacity = subassy[1].metadata["edge_color"].toTuple()[3]
+        # Allow the caller to control the edge opacity
+        edge_opacity = 1.0
+        if len(edge_color) > 3:
+            edge_opacity = edge_color[3]
 
-            edge_mapper.SetInputDataObject(data_edges)
-            edge_actor.SetPosition(*translation)
-            edge_actor.SetOrientation(*rotation)
-            edge_actor.GetProperty().SetColor(
-                cur_edge_color[0], cur_edge_color[1], cur_edge_color[2]
-            )
-            edge_actor.GetProperty().SetOpacity(edge_opacity)
-            edge_actor.GetProperty().SetLineWidth(edge_width)
+        # Set up the edges
+        edge_mapper.SetInputDataObject(data_edges)
+        edge_actor.SetPosition(*translation)
+        edge_actor.SetOrientation(*rotation)
+        edge_actor.GetProperty().SetColor(edge_color[0], edge_color[1], edge_color[2])
+        edge_actor.GetProperty().SetOpacity(edge_opacity)
+        edge_actor.GetProperty().SetLineWidth(cur_edge_width)
 
-            # Handle all actors
-            face_actors.append(face_actor)
-            edge_actors.append(edge_actor)
+        # Handle all actors
+        face_actors.append(face_actor)
+        edge_actors.append(edge_actor)
 
     return face_actors, edge_actors
 
@@ -244,6 +240,7 @@ def setup_camera(renderer, view, zoom=1.0):
 
     # Set the camera up for the requested view
     camera = renderer.GetActiveCamera()
+    renderer.ResetCamera()
     camera.ParallelProjectionOn()
     camera.SetViewUp(*view_up)
     camera.Zoom(zoom)
@@ -252,8 +249,8 @@ def setup_camera(renderer, view, zoom=1.0):
     camera.Roll(roll)
     camera.SetWindowCenter(window_center_x, window_center_y)
 
-    # Set the clipping range
-    camera.SetClippingRange(-10000.0, 10000.0)
+    # Reset clipping range after camera setup
+    renderer.ResetCameraClippingRange()
 
 
 def save_render_window_to_png(render_window, filename):
@@ -305,7 +302,7 @@ def export_assembly_png(self, options, file_path):
 
     # Convert the assembly to VTK actors that can be rendered
     face_actors, edge_actors = convert_assembly_to_vtk(
-        self, options["edge_width"], options["color_theme"]
+        self, options["edge_width"], options["color_theme"], options["edge_color"]
     )
 
     # Variables for the render window

@@ -28,6 +28,7 @@ classifiers = [
 dev = [
   "pytest",
   "black",
+  "Pillow",
 ]
 
 [project.urls]
