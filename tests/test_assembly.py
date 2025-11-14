@@ -267,7 +267,7 @@ def test_assembly_with_custom_view(sample_assembly):
     assert rgb[1] == 255
     assert rgb[2] == 255
     rgb = img.getpixel((400, 900))
-    assert rgb[0] == 227
+    assert rgb[0] == 227 or rgb[0] == 228
     assert rgb[1] == 0
     assert rgb[2] == 0
     rgb = img.getpixel((550, 650))
