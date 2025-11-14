@@ -43,6 +43,28 @@ That code results in the following image.
 
 ![Sample PNG based on the script above](sample_image.png)
 
+It is also possible to pass a dictionary for the `view` parameter rather than using a named view.
+This allows for custom views, but all of the fields shown below must be provided.
+The view values provided below are equivalent to passing the string `front-top-right` for the `view` parameter.
+
+```python
+render_options = {
+    "width": 1200,
+    "height": 1200,
+    "color_theme": "default",
+    "view": {
+        "view_up": (0, 1, 0),
+        "azimuth": 45,
+        "elevation": -45,
+        "roll": -55,
+        "window_center_x": -0.05,
+        "window_center_y": -0.05
+    },
+    "zoom": 1.0,
+    "background_color": (1, 1, 1),
+}
+```
+
 ## Where this Plugin is Used
 
 An example of this plugin being used by a project in the wild can be found in the [Nimble repository](https://github.com/Wakoma/nimble/blob/c33497258f969392d91b2c30aa8d06ef7a2bd7ec/nimble_build_system/cad/renderer.py).

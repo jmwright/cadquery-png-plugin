@@ -138,105 +138,114 @@ def setup_camera(renderer, view, zoom=1.0):
     Sets up a VTK camera with the given center, distance and rotation.
     """
 
-    # Apply different options for different views
-    if view == "top":
-        view_up = (0, 1, 0)
-        azimuth = 0
-        elevation = 0
-        roll = 0
-        window_center_x = 0.0
-        window_center_y = 0.0
-    elif view == "bottom":
-        view_up = (0, 1, 0)
-        azimuth = 180
-        elevation = 0
-        roll = 0
-        window_center_x = 0.0
-        window_center_y = 0.0
-    elif view == "back":
-        view_up = (0, 1, 0)
-        azimuth = 0
-        elevation = 90
-        roll = 180
-        window_center_x = 0.0
-        window_center_y = 0.0
-    elif view == "front":
-        view_up = (0, 1, 0)
-        azimuth = 0
-        elevation = -90
-        roll = 0
-        window_center_x = 0.0
-        window_center_y = 0.0
-    elif view == "left":
-        view_up = (0, 1, 0)
-        azimuth = 90
-        elevation = 180
-        roll = 90
-        window_center_x = 0.0
-        window_center_y = 0.0
-    elif view == "right":
-        view_up = (0, 1, 0)
-        azimuth = 90
-        elevation = 0
-        roll = -90
-        window_center_x = 0.0
-        window_center_y = 0.0
-    elif view == "front-top-right":
-        view_up = (0, 1, 0)
-        azimuth = 45
-        elevation = -45
-        roll = -55
-        window_center_x = -0.05
-        window_center_y = -0.05
-    elif view == "front-top-left":
-        view_up = (0, 1, 0)
-        azimuth = -45
-        elevation = -45
-        roll = 55
-        window_center_x = 0.1
-        window_center_y = -0.2
-    elif view == "front-bottom-right":
-        view_up = (0, 1, 0)
-        azimuth = -45
-        elevation = -135
-        roll = -125
-        window_center_x = -0.05
-        window_center_y = 0.05
-    elif view == "front-bottom-left":
-        view_up = (0, 1, 0)
-        azimuth = 45
-        elevation = -135
-        roll = 125
-        window_center_x = 0.1
-        window_center_y = -0.1
-    elif view == "back-top-right":
-        view_up = (0, 1, 0)
-        azimuth = 135
-        elevation = 135
-        roll = 125
-        window_center_x = 0.1
-        window_center_y = -0.1
-    elif view == "back-top-left":
-        view_up = (0, 1, 0)
-        azimuth = -135
-        elevation = 135
-        roll = -125
-        window_center_x = -0.1
-        window_center_y = -0.1
-    elif view == "back-bottom-left":
-        view_up = (0, 1, 0)
-        azimuth = 135
-        elevation = 45
-        roll = -55
-        window_center_x = -0.1
-        window_center_y = -0.2
-    elif view == "back-bottom-right":
-        view_up = (0, 1, 0)
-        azimuth = -135
-        elevation = 45
-        roll = 55
-        window_center_x = 0.1
-        window_center_y = 0.1
+    # Check to see if the view object is a string or dict
+    if isinstance(view, str):
+        # Apply different options for different views
+        if view == "top":
+            view_up = (0, 1, 0)
+            azimuth = 0
+            elevation = 0
+            roll = 0
+            window_center_x = 0.0
+            window_center_y = 0.0
+        elif view == "bottom":
+            view_up = (0, 1, 0)
+            azimuth = 180
+            elevation = 0
+            roll = 0
+            window_center_x = 0.0
+            window_center_y = 0.0
+        elif view == "back":
+            view_up = (0, 1, 0)
+            azimuth = 0
+            elevation = 90
+            roll = 180
+            window_center_x = 0.0
+            window_center_y = 0.0
+        elif view == "front":
+            view_up = (0, 1, 0)
+            azimuth = 0
+            elevation = -90
+            roll = 0
+            window_center_x = 0.0
+            window_center_y = 0.0
+        elif view == "left":
+            view_up = (0, 1, 0)
+            azimuth = 90
+            elevation = 180
+            roll = 90
+            window_center_x = 0.0
+            window_center_y = 0.0
+        elif view == "right":
+            view_up = (0, 1, 0)
+            azimuth = 90
+            elevation = 0
+            roll = -90
+            window_center_x = 0.0
+            window_center_y = 0.0
+        elif view == "front-top-right":
+            view_up = (0, 1, 0)
+            azimuth = 45
+            elevation = -45
+            roll = -55
+            window_center_x = -0.05
+            window_center_y = -0.05
+        elif view == "front-top-left":
+            view_up = (0, 1, 0)
+            azimuth = -45
+            elevation = -45
+            roll = 55
+            window_center_x = 0.1
+            window_center_y = -0.2
+        elif view == "front-bottom-right":
+            view_up = (0, 1, 0)
+            azimuth = -45
+            elevation = -135
+            roll = -125
+            window_center_x = -0.05
+            window_center_y = 0.05
+        elif view == "front-bottom-left":
+            view_up = (0, 1, 0)
+            azimuth = 45
+            elevation = -135
+            roll = 125
+            window_center_x = 0.1
+            window_center_y = -0.1
+        elif view == "back-top-right":
+            view_up = (0, 1, 0)
+            azimuth = 135
+            elevation = 135
+            roll = 125
+            window_center_x = 0.1
+            window_center_y = -0.1
+        elif view == "back-top-left":
+            view_up = (0, 1, 0)
+            azimuth = -135
+            elevation = 135
+            roll = -125
+            window_center_x = -0.1
+            window_center_y = -0.1
+        elif view == "back-bottom-left":
+            view_up = (0, 1, 0)
+            azimuth = 135
+            elevation = 45
+            roll = -55
+            window_center_x = -0.1
+            window_center_y = -0.2
+        elif view == "back-bottom-right":
+            view_up = (0, 1, 0)
+            azimuth = -135
+            elevation = 45
+            roll = 55
+            window_center_x = 0.1
+            window_center_y = 0.1
+    else:
+        view_up = view["view_up"]
+        azimuth = view["azimuth"]
+        elevation = view["elevation"]
+        roll = view["roll"]
+        window_center_x = view["window_center_x"]
+        window_center_y = view["window_center_y"]
 
     # Set the camera up for the requested view
     camera = renderer.GetActiveCamera()
