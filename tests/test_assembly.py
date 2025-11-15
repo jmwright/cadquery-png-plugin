@@ -245,7 +245,7 @@ def test_assembly_with_custom_view(sample_assembly):
         "height": 1200,
         "color_theme": "default",
         "view": {
-            "view_up": (0, 1, 0),
+            # "view_up": (0, 1, 0),  # commented to make sure that defaults kick in
             "azimuth": -100,
             "elevation": 25,
             "roll": 25,

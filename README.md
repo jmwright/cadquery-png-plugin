@@ -44,8 +44,8 @@ That code results in the following image.
 ![Sample PNG based on the script above](sample_image.png)
 
 It is also possible to pass a dictionary for the `view` parameter rather than using a named view.
-This allows for custom views, but all of the fields shown below must be provided.
-The view values provided below are equivalent to passing the string `front-top-right` for the `view` parameter.
+This allows for custom views.
+The view values provided below are equivalent to passing the string `front-top-right` for the `view` parameter. The parameter values shown below are also the default values for the view if any of the custom view parameters are omitted from the dictionary.
 
 ```python
 render_options = {

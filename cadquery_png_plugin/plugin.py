@@ -240,12 +240,17 @@ def setup_camera(renderer, view, zoom=1.0):
             window_center_x = 0.1
             window_center_y = 0.1
     else:
-        view_up = view["view_up"]
-        azimuth = view["azimuth"]
-        elevation = view["elevation"]
-        roll = view["roll"]
-        window_center_x = view["window_center_x"]
-        window_center_y = view["window_center_y"]
+        # A dictionary of view parameters was passed in
+        view_up = view["view_up"] if "view_up" in view else (0, 1, 0)
+        azimuth = view["azimuth"] if "azimuth" in view else 45
+        elevation = view["elevation"] if "elevation" in view else -45
+        roll = view["roll"] if "roll" in view else -55
+        window_center_x = (
+            view["window_center_x"] if "window_center_x" in view else -0.05
+        )
+        window_center_y = (
+            view["window_center_y"] if "window_center_y" in view else -0.05
+        )
 
     # Set the camera up for the requested view
     camera = renderer.GetActiveCamera()
