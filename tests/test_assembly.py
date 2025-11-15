@@ -228,3 +228,49 @@ def test_nested_assembly(nested_assembly):
     assert rgb[0] == 145
     assert rgb[1] == 120
     assert rgb[2] == 88
+
+
+def test_assembly_with_custom_view(sample_assembly):
+    """
+    Tests that passing a custom view dictionary works.
+    """
+
+    # Generate a temporary directory to put the PNG file in
+    tempdir = tempfile.mkdtemp()
+    file_path = os.path.join(tempdir, "custom_view_test.png")
+
+    # Export the assembly
+    render_options = {
+        "width": 1200,
+        "height": 1200,
+        "color_theme": "default",
+        "view": {
+            # "view_up": (0, 1, 0),  # commented to make sure that defaults kick in
+            "azimuth": -100,
+            "elevation": 25,
+            "roll": 25,
+            "window_center_x": 0.5,
+            "window_center_y": 0.5,
+        },
+        "zoom": 1.0,
+        "background_color": (1, 1, 1),
+    }
+    sample_assembly.exportPNG(options=render_options, file_path=file_path)
+
+    # Make sure that the file was created
+    assert os.path.exists(file_path)
+
+    # Make sure that the image has the content we expect
+    img = Image.open(file_path)
+    rgb = img.getpixel((1000, 500))
+    assert rgb[0] == 255
+    assert rgb[1] == 255
+    assert rgb[2] == 255
+    rgb = img.getpixel((400, 900))
+    assert rgb[0] == 227 or rgb[0] == 228
+    assert rgb[1] == 0
+    assert rgb[2] == 0
+    rgb = img.getpixel((550, 650))
+    assert rgb[0] == 0
+    assert rgb[1] == 227 or rgb[1] == 228
+    assert rgb[2] == 0
