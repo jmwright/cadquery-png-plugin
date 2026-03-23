@@ -136,7 +136,16 @@ def setup_render_window(face_actors, edge_actors, width, height, background_colo
 def setup_camera(renderer, view, zoom=1.0):
     """
     Sets up a VTK camera with the given center, distance and rotation.
+
+    azimuth and elevation are true spherical-coordinate angles:
+      - azimuth rotates the camera around the view-up (Y) axis
+      - elevation tilts the camera above (+) or below (-) the equatorial plane
+    Camera position = focal + dist * (cos(el)*sin(az), sin(el), cos(el)*cos(az))
+
+    Note: these values differ from the old VTK-incremental convention by a sign
+    flip on elevation (el_new = -el_old). azimuth and roll are unchanged.
     """
+    import math
 
     # Check to see if the view object is a string or dict
     if isinstance(view, str):
@@ -158,21 +167,21 @@ def setup_camera(renderer, view, zoom=1.0):
         elif view == "back":
             view_up = (0, 1, 0)
             azimuth = 0
-            elevation = 90
+            elevation = -90
             roll = 180
             window_center_x = 0.0
             window_center_y = 0.0
         elif view == "front":
             view_up = (0, 1, 0)
             azimuth = 0
-            elevation = -90
+            elevation = 90
             roll = 0
             window_center_x = 0.0
             window_center_y = 0.0
         elif view == "left":
             view_up = (0, 1, 0)
             azimuth = 90
-            elevation = 180
+            elevation = -180
             roll = 90
             window_center_x = 0.0
             window_center_y = 0.0
@@ -186,56 +195,56 @@ def setup_camera(renderer, view, zoom=1.0):
         elif view == "front-top-right":
             view_up = (0, 1, 0)
             azimuth = 45
-            elevation = -45
+            elevation = 45
             roll = -55
             window_center_x = -0.05
             window_center_y = -0.05
         elif view == "front-top-left":
             view_up = (0, 1, 0)
             azimuth = -45
-            elevation = -45
+            elevation = 45
             roll = 55
             window_center_x = 0.1
             window_center_y = -0.2
         elif view == "front-bottom-right":
             view_up = (0, 1, 0)
             azimuth = -45
-            elevation = -135
+            elevation = 135
             roll = -125
             window_center_x = -0.05
             window_center_y = 0.05
         elif view == "front-bottom-left":
             view_up = (0, 1, 0)
             azimuth = 45
-            elevation = -135
+            elevation = 135
             roll = 125
             window_center_x = 0.1
             window_center_y = -0.1
         elif view == "back-top-right":
             view_up = (0, 1, 0)
             azimuth = 135
-            elevation = 135
+            elevation = -135
             roll = 125
             window_center_x = 0.1
             window_center_y = -0.1
         elif view == "back-top-left":
             view_up = (0, 1, 0)
             azimuth = -135
-            elevation = 135
+            elevation = -135
             roll = -125
             window_center_x = -0.1
             window_center_y = -0.1
         elif view == "back-bottom-left":
             view_up = (0, 1, 0)
             azimuth = 135
-            elevation = 45
+            elevation = -45
             roll = -55
             window_center_x = -0.1
             window_center_y = -0.2
         elif view == "back-bottom-right":
             view_up = (0, 1, 0)
             azimuth = -135
-            elevation = 45
+            elevation = -45
             roll = 55
             window_center_x = 0.1
             window_center_y = 0.1
@@ -243,7 +252,7 @@ def setup_camera(renderer, view, zoom=1.0):
         # A dictionary of view parameters was passed in
         view_up = view["view_up"] if "view_up" in view else (0, 1, 0)
         azimuth = view["azimuth"] if "azimuth" in view else 45
-        elevation = view["elevation"] if "elevation" in view else -45
+        elevation = view["elevation"] if "elevation" in view else 45
         roll = view["roll"] if "roll" in view else -55
         window_center_x = (
             view["window_center_x"] if "window_center_x" in view else -0.05
@@ -252,15 +261,37 @@ def setup_camera(renderer, view, zoom=1.0):
             view["window_center_y"] if "window_center_y" in view else -0.05
         )
 
-    # Set the camera up for the requested view
+    # Position the camera on a sphere around the focal point using true
+    # spherical coordinates. This avoids the gimbal-lock-style issues that
+    # arise when chaining VTK's incremental Azimuth/Elevation calls.
     camera = renderer.GetActiveCamera()
     renderer.ResetCamera()
     camera.ParallelProjectionOn()
-    camera.SetViewUp(*view_up)
-    camera.Zoom(zoom)
-    camera.Azimuth(azimuth)
-    camera.Elevation(elevation)
+
+    focal = camera.GetFocalPoint()
+    pos = camera.GetPosition()
+    dist = math.sqrt(sum((p - f) ** 2 for p, f in zip(pos, focal)))
+
+    az_rad = math.radians(azimuth)
+    el_rad = math.radians(elevation)
+    cos_el = math.cos(el_rad)
+
+    camera.SetPosition(
+        focal[0] + dist * cos_el * math.sin(az_rad),
+        focal[1] + dist * math.sin(el_rad),
+        focal[2] + dist * cos_el * math.cos(az_rad),
+    )
+    camera.SetFocalPoint(*focal)
+
+    # When el = ±90° the camera sits on the Y axis and view_up=(0,1,0) is
+    # degenerate (parallel to the view direction). Use Z as view-up instead.
+    if abs(cos_el) < 0.01:
+        camera.SetViewUp(0, 0, 1)
+    else:
+        camera.SetViewUp(*view_up)
+
     camera.Roll(roll)
+    camera.Zoom(zoom)
     camera.SetWindowCenter(window_center_x, window_center_y)
 
     # Reset clipping range after camera setup
